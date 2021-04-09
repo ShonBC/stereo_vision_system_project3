@@ -1,0 +1,2 @@
+# stereo_vision_system_project3
+ENPM 673 - Perception For Autonomous Robots: In this project,we are going to implement the concept ofStereo Vision. We will be given 3 different datasets, each of them contains2 images of the same scenario but taken from two different camera angles. By comparingthe information about a scene from 2 vantage points, we can obtain the 3D information by examining the relative positions of objects.
