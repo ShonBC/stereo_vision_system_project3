@@ -67,9 +67,11 @@ def features(image_1, image_2): # Use keypoints and descriptors form SIFT to mat
         x2.append(key_points_2[good_match[i][0].trainIdx].pt[0])
         y2.append(key_points_2[good_match[i][0].trainIdx].pt[1])
 
+    f = fun_mtx(x1, y1, x2, y2)
+
     image_3 = cv2.drawMatchesKnn(image_1, key_points_1, image_2, key_points_2, good_match, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
 
-    return image_3, x1, y1, x2, y2
+    return image_3, f
 
 def fun_mtx(x1, y1, x2, y2): # Compute the Fundamental Matrix using matched key point coordinates
 
@@ -89,9 +91,9 @@ def fun_mtx(x1, y1, x2, y2): # Compute the Fundamental Matrix using matched key 
 
 if __name__ == "__main__":
 
-    im0, im1 = data3()
+    im0, im1 = data3() # Choose which data set to apply stereo vision to (Each data set consists of two images)
 
-    img3, x1, y1, x2, y2 = features(im0, im1)
+    img3, f = features(im0, im1) # Apply SIFT to match features and compute the fundamental matrix
 
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
