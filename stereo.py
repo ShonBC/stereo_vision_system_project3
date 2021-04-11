@@ -56,26 +56,34 @@ def features(image_1, image_2): # Use keypoints and descriptors form SIFT to mat
 
             good_match.append([m])
 
+    x1, y1 = [], []
+    x2, y2 = [], []
+
+    for i in range(len(good_match)): # Collect the good_match coordinates from each image
+
+        x1.append(key_points_1[good_match[i][0].queryIdx].pt[0])
+        y1.append(key_points_1[good_match[i][0].queryIdx].pt[1])
+        
+        x2.append(key_points_2[good_match[i][0].trainIdx].pt[0])
+        y2.append(key_points_2[good_match[i][0].trainIdx].pt[1])
+
     image_3 = cv2.drawMatchesKnn(image_1, key_points_1, image_2, key_points_2, good_match, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
 
-    return image_3
+    return image_3, x1, y1, x2, y2
 
-def fun_mtx(key_points_1, key_points_2):
+def fun_mtx(x1, y1, x2, y2):
 
-    x1 = []
-    y1 = []
 
-    for i in key_points_1:
+    A = []
+    
 
-        x1.append(key_points_1[i].pt[0])
-        y1.append(key_points_1[i].pt[1])
-            
+    return x1, y1, x2, y2
 
 if __name__ == "__main__":
 
     im0, im1 = data3()
 
-    img3 = features(im0, im1)
+    img3, x1, y1, x2, y2 = features(im0, im1)
 
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
