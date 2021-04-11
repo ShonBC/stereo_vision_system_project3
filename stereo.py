@@ -71,13 +71,21 @@ def features(image_1, image_2): # Use keypoints and descriptors form SIFT to mat
 
     return image_3, x1, y1, x2, y2
 
-def fun_mtx(x1, y1, x2, y2):
-
+def fun_mtx(x1, y1, x2, y2): # Compute the Fundamental Matrix using matched key point coordinates
 
     A = []
     
+    for i in range(len(x1)):
+        
+        eq = [ x1[i] * x2[i], x1[i] * y1[i], x1[i], y1[i] * x2[i], y1[i] * y2[i], y1[i], x2[i], y2[i], 1]
 
-    return x1, y1, x2, y2
+        A.append(eq)
+
+    u, s, v = np.linalg.svd(A)
+
+    f = np.reshape(v[-1], (3, 3))
+
+    return f
 
 if __name__ == "__main__":
 
