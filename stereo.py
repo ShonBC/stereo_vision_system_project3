@@ -60,6 +60,17 @@ def features(image_1, image_2): # Use keypoints and descriptors form SIFT to mat
 
     return image_3
 
+def fun_mtx(key_points_1, key_points_2):
+
+    x1 = []
+    y1 = []
+
+    for i in key_points_1:
+
+        x1.append(key_points_1[i].pt[0])
+        y1.append(key_points_1[i].pt[1])
+            
+
 if __name__ == "__main__":
 
     im0, im1 = data3()
