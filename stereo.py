@@ -71,6 +71,8 @@ def features(image_1, image_2): # Use keypoints and descriptors form SIFT to mat
 
     image_3 = cv2.drawMatchesKnn(image_1, key_points_1, image_2, key_points_2, good_match, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
 
+    E0, E1 = ess_mtx(f)
+
     return image_3, f
 
 def fun_mtx(x1, y1, x2, y2): # Compute the Fundamental Matrix using matched key point coordinates
@@ -89,6 +91,30 @@ def fun_mtx(x1, y1, x2, y2): # Compute the Fundamental Matrix using matched key 
 
     return f
 
+def ess_mtx(fundamental_matrix): # Compute the Essential Matrix from the Fundamental Matrix
+
+    cam0 = np.array([[5299.313, 0, 1263.818],
+    [0, 5299.313, 977.763],
+    [0, 0, 1]])
+    cam1 = np.array([[5299.313, 0, 1438.004],
+    [0, 5299.313, 977.763],
+    [0, 0, 1]])
+
+    w = np.array([[0, -1, 0],
+    [1, 0, 0],
+    [0, 0, 1]])
+
+    E0 = cam0.T * fundamental_matrix * cam0
+    E1 = cam1.T * fundamental_matrix * cam1
+
+    u, s, v = np.linalg.svd(E0)
+    c1 = u[-1]
+    c2 = -u[-1]
+    r1 = u * w * v.T
+    r2 = u * w.T * v.T
+
+    return E0, E1
+    
 if __name__ == "__main__":
 
     im0, im1 = data3() # Choose which data set to apply stereo vision to (Each data set consists of two images)
