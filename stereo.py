@@ -49,6 +49,12 @@ def features(image_1, image_2): # Use keypoints and descriptors form SIFT to mat
     bf = cv2.BFMatcher()
     matches = bf.knnMatch(descriptors_1, descriptors_2, k=2)
 
+    """
+    Compare the distance between the discriptors. 
+    If the first is less than 75% of the second distance, 
+    Add it the matched pair to the "good_match" list.
+    """
+
     good_match = []
     for m, n in matches: # Apply ratio test to filter for good matches
 
@@ -67,11 +73,11 @@ def features(image_1, image_2): # Use keypoints and descriptors form SIFT to mat
         x2.append(key_points_2[good_match[i][0].trainIdx].pt[0])
         y2.append(key_points_2[good_match[i][0].trainIdx].pt[1])
 
-    f = fun_mtx(x1, y1, x2, y2)
+    f = fun_mtx(x1, y1, x2, y2) # Fundamental Matrix
 
     image_3 = cv2.drawMatchesKnn(image_1, key_points_1, image_2, key_points_2, good_match, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
 
-    E0, E1 = ess_mtx(f)
+    E0, E1 = ess_mtx(f) # ESsential Matrix
 
     return image_3, f
 
