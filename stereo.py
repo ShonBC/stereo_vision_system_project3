@@ -60,7 +60,7 @@ def sift(image): # Use SIFT to find keypoints and descriptors for image and draw
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     sift = cv2.SIFT_create()
     key_points, descriptors = sift.detectAndCompute(gray, None)
-    image = cv2.drawKeypoints(gray, key_points, image)    
+    # image = cv2.drawKeypoints(gray, key_points, image) # Draw Keypoints found   
 
     return key_points, descriptors
 
@@ -103,18 +103,22 @@ def features(image_1, image_2): # Use keypoints and descriptors form SIFT to mat
         pts_2.append(key_points_2[good_match[i][0].trainIdx].pt)
 
     f = fun_mtx(x1, y1, x2, y2) # Fundamental Matrix
-    print(f)
+    print("Fundamental Matrix: ", '\n', f)
     F, mask = cv2.findFundamentalMat(np.int32(pts_1),np.int32(pts_2), cv2.FM_RANSAC)
     print(F)
 
+    # Compute homography matrices for image rectification
     _, h1, h2 = cv2.stereoRectifyUncalibrated(np.int32(pts_1),np.int32(pts_2), f, (720,480))
     _, H1, H2 = cv2.stereoRectifyUncalibrated(np.int32(pts_1),np.int32(pts_2), F, (720,480))
 
-    image_3 = cv2.drawMatchesKnn(image_1, key_points_1, image_2, key_points_2, good_match, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+    print("Homography for first image: ", '\n', H1)
+    print("Homography for second image:", '\n', H2)
+
+    # image_3 = cv2.drawMatchesKnn(image_1, key_points_1, image_2, key_points_2, good_match, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
 
     E = ess_mtx(f) # ESsential Matrix
 
-    return image_3, f
+    return H1, H2
 
 def fun_mtx(x1, y1, x2, y2): # Compute the Fundamental Matrix using matched key point coordinates
 
@@ -142,26 +146,34 @@ def ess_mtx(fundamental_matrix): # Compute the Essential Matrix from the Fundame
 
     # Decompose essential matrix into rotation and translation
     u, s, v = np.linalg.svd(E)
-    c1 = u[-1]
-    c2 = -u[-1]
+    t1 = u[-1]
+    t2 = -u[-1]
     r1 = u * w * v.T
     r2 = u * w.T * v.T
+
+    print("Essential Matrix: ", '\n', E)
+    print("Rotation: ", '\n',  r1, '\n', '\n', r2)
+    print("Translation: ", '\n', t1, '\n', '\n', t2)
 
     return E
 
 def rectify(image_1, image_2, H1, H2):
 
-    cv2.initUndistortRectifyMap()
+    rec1 = cv2.warpPerspective(image_1, H1, (720, 480))
+    rec2 = cv2.warpPerspective(image_2, H2, (720, 480))
+    
+    h_stack = np.hstack((rec1, rec2))
+    cv2.imshow('rectify', h_stack)
 
-    pass
 
 if __name__ == "__main__":
 
     im0, im1, cam0, cam1 = data3() # Choose which data set to apply stereo vision to (Each data set consists of two images)
 
-    img3, f = features(im0, im1) # Apply SIFT to match features and compute the fundamental matrix
+    H1, H2= features(im0, im1) # Apply SIFT to match features and compute the fundamental matrix
+    rectify(im0, im1, H1, H2)
 
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
-    cv2.imshow('img3', img3)
+    # cv2.imshow('img3', img3)
     cv2.waitKey(0)
