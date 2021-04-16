@@ -104,19 +104,27 @@ def features(image_1, image_2): # Use keypoints and descriptors form SIFT to mat
 
     f = fun_mtx(x1, y1, x2, y2) # Fundamental Matrix
     print("Fundamental Matrix: ", '\n', f)
-    F, mask = cv2.findFundamentalMat(np.int32(pts_1),np.int32(pts_2), cv2.FM_RANSAC)
+    
+    pts_1 = np.int32(pts_1)
+    pts_2 = np.int32(pts_2)
+
+    F, mask = cv2.findFundamentalMat(pts_1, pts_2, cv2.FM_RANSAC)
+
+    # Filter for inlier points
+    pts_1 = pts_1[mask.ravel() == 1]
+    pts_2 = pts_2[mask.ravel() == 1]
     print(F)
 
     # Compute homography matrices for image rectification
     # _, h1, h2 = cv2.stereoRectifyUncalibrated(np.int32(pts_1),np.int32(pts_2), f, (720,480))
-    _, H1, H2 = cv2.stereoRectifyUncalibrated(np.int32(pts_1),np.int32(pts_2), F, (720,480))
+    _, H1, H2 = cv2.stereoRectifyUncalibrated(pts_1, pts_2, F, (720,480))
 
     print("Homography for first image: ", '\n', H1)
     print("Homography for second image:", '\n', H2)
 
     # image_3 = cv2.drawMatchesKnn(image_1, key_points_1, image_2, key_points_2, good_match, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
 
-    E = ess_mtx(f) # Essential Matrix
+    E = ess_mtx(F) # Essential Matrix
 
     return pts_1, pts_2, H1, H2, F
 
@@ -170,8 +178,8 @@ def rectify(image_1, image_2):
     lines_1 = cv2.computeCorrespondEpilines(pts_1.reshape(-1, 1, 2), 1, F).reshape(-1, 3)
     lines_2 = cv2.computeCorrespondEpilines(pts_2.reshape(-1, 1, 2), 2, F).reshape(-1, 3)
 
-    draw_epiline(image_1, lines_2)
-    draw_epiline(image_2, lines_1)
+    draw_epiline(rec1, lines_2)
+    draw_epiline(rec2, lines_1)
 
     h_stack = np.hstack((rec1, rec2))
     cv2.imshow('rectify', h_stack)
@@ -190,11 +198,9 @@ def draw_epiline(image, lines):
 
 if __name__ == "__main__":
 
-    im0, im1, cam0, cam1 = data3() # Choose which data set to apply stereo vision to (Each data set consists of two images)
+    im0, im1, cam0, cam1 = data2() # Choose which data set to apply stereo vision to (Each data set consists of two images)
 
-    # H1, H2 = features(im0, im1) # Apply SIFT to match features and compute the fundamental matrix
     rec1, rec2 = rectify(im0, im1)
-    # rec3, rec4 = rectify(rec1, rec2)
 
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
