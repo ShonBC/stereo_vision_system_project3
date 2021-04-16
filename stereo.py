@@ -60,7 +60,7 @@ def sift(image): # Use SIFT to find keypoints and descriptors for image and draw
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     sift = cv2.SIFT_create()
     key_points, descriptors = sift.detectAndCompute(gray, None)
-    # image = cv2.drawKeypoints(gray, key_points, image) # Draw Keypoints found   
+    image = cv2.drawKeypoints(gray, key_points, image) # Draw Keypoints found   
 
     return key_points, descriptors
 
@@ -108,7 +108,7 @@ def features(image_1, image_2): # Use keypoints and descriptors form SIFT to mat
     print(F)
 
     # Compute homography matrices for image rectification
-    _, h1, h2 = cv2.stereoRectifyUncalibrated(np.int32(pts_1),np.int32(pts_2), f, (720,480))
+    # _, h1, h2 = cv2.stereoRectifyUncalibrated(np.int32(pts_1),np.int32(pts_2), f, (720,480))
     _, H1, H2 = cv2.stereoRectifyUncalibrated(np.int32(pts_1),np.int32(pts_2), F, (720,480))
 
     print("Homography for first image: ", '\n', H1)
@@ -116,9 +116,9 @@ def features(image_1, image_2): # Use keypoints and descriptors form SIFT to mat
 
     # image_3 = cv2.drawMatchesKnn(image_1, key_points_1, image_2, key_points_2, good_match, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
 
-    E = ess_mtx(f) # ESsential Matrix
+    E = ess_mtx(f) # Essential Matrix
 
-    return H1, H2
+    return pts_1, pts_2, H1, H2, F
 
 def fun_mtx(x1, y1, x2, y2): # Compute the Fundamental Matrix using matched key point coordinates
 
@@ -126,7 +126,7 @@ def fun_mtx(x1, y1, x2, y2): # Compute the Fundamental Matrix using matched key 
     
     for i in range(len(x1)):
         
-        eq = [ x1[i] * x2[i], x1[i] * y1[i], x1[i], y1[i] * x2[i], y1[i] * y2[i], y1[i], x2[i], y2[i], 1]
+        eq = [x1[i] * x2[i], x1[i] * y1[i], x1[i], y1[i] * x2[i], y1[i] * y2[i], y1[i], x2[i], y2[i], 1]
 
         A.append(eq)
 
@@ -157,21 +157,44 @@ def ess_mtx(fundamental_matrix): # Compute the Essential Matrix from the Fundame
 
     return E
 
-def rectify(image_1, image_2, H1, H2):
+def rectify(image_1, image_2):
+
+    pts_1, pts_2, H1, H2, F = features(image_1, image_2)
+    
+    pts_1 = np.int32(pts_1)
+    pts_2 = np.int32(pts_2)
 
     rec1 = cv2.warpPerspective(image_1, H1, (720, 480))
     rec2 = cv2.warpPerspective(image_2, H2, (720, 480))
-    
+
+    lines_1 = cv2.computeCorrespondEpilines(pts_1.reshape(-1, 1, 2), 1, F).reshape(-1, 3)
+    lines_2 = cv2.computeCorrespondEpilines(pts_2.reshape(-1, 1, 2), 2, F).reshape(-1, 3)
+
+    draw_epiline(image_1, lines_2)
+    draw_epiline(image_2, lines_1)
+
     h_stack = np.hstack((rec1, rec2))
     cv2.imshow('rectify', h_stack)
 
+    return rec1, rec2
+
+def draw_epiline(image, lines):
+
+    height, width, _ = image.shape
+
+    for i in lines:
+        
+        x1, y1 = map(int, [0, -i[2] / i[1]])
+        x2, y2 = map(int, [width, -(i[2] + i[0] * width) / i[1]])
+        cv2.line(image, (x1, y1), (x2, y2), (0, 255, 0), 1)
 
 if __name__ == "__main__":
 
     im0, im1, cam0, cam1 = data3() # Choose which data set to apply stereo vision to (Each data set consists of two images)
 
-    H1, H2= features(im0, im1) # Apply SIFT to match features and compute the fundamental matrix
-    rectify(im0, im1, H1, H2)
+    # H1, H2 = features(im0, im1) # Apply SIFT to match features and compute the fundamental matrix
+    rec1, rec2 = rectify(im0, im1)
+    # rec3, rec4 = rectify(rec1, rec2)
 
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
