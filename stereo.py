@@ -198,14 +198,34 @@ def draw_epiline(image, lines):
 
 def correspondence(rec1, rec2):
 
-    window = np.ones(5, 5)
+    k = 5
+
+    disp = np.ones_like(rec1)
 
     for i in range(len(rec1)):
         for j in range(len(rec1[i])):
             
-            a = rec1[j - 5:j + 5]
-            
+            a = rec1[i - k: i + k, j - k: j + k]
 
+            for c in range(len(rec2[i])):
+                
+                b = rec2[i - k: i + k, c - k: c + k]
+
+                if a.all() == b.all():
+                    
+                    disp[i][j] = disparity(c, j)
+                
+                else:
+
+                    pass
+
+    return disp
+
+def disparity(x1, x2):
+
+    disp = x1 - x2
+
+    return disp
    
 
 def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt functions
@@ -227,6 +247,8 @@ if __name__ == "__main__":
     # stereo_depth(im0, im1)
 
     rec1, rec2 = rectify(im0, im1)
+
+    disp = correspondence(rec1, rec2)
 
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
