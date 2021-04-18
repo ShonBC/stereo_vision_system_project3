@@ -178,8 +178,8 @@ def rectify(image_1, image_2):
     lines_1 = cv2.computeCorrespondEpilines(pts_1.reshape(-1, 1, 2), 1, F).reshape(-1, 3)
     lines_2 = cv2.computeCorrespondEpilines(pts_2.reshape(-1, 1, 2), 2, F).reshape(-1, 3)
 
-    draw_epiline(rec1, lines_2)
-    draw_epiline(rec2, lines_1)
+    draw_epiline(image_1, lines_2)
+    draw_epiline(image_2, lines_1)
 
     h_stack = np.hstack((rec1, rec2))
     cv2.imshow('rectify', h_stack)
@@ -198,7 +198,7 @@ def draw_epiline(image, lines):
 
 if __name__ == "__main__":
 
-    im0, im1, cam0, cam1 = data2() # Choose which data set to apply stereo vision to (Each data set consists of two images)
+    im0, im1, cam0, cam1 = data3() # Choose which data set to apply stereo vision to (Each data set consists of two images)
 
     rec1, rec2 = rectify(im0, im1)
 
