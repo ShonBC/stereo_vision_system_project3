@@ -5,7 +5,7 @@ Project 3 Stereo Vision System
 """
 import cv2
 import numpy as np
-
+from matplotlib import pyplot as plt
 
 def data1(): # Initializes images from data set 1
 
@@ -196,11 +196,27 @@ def draw_epiline(image, lines):
         x2, y2 = map(int, [width, -(i[2] + i[0] * width) / i[1]])
         cv2.line(image, (x1, y1), (x2, y2), (0, 255, 0), 1)
 
+def disparity(image_1, image_2):
+
+    image_1
+   
+
+def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt functions
+    
+    gray_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
+    gray_2 = cv2.cvtColor(image_2, cv2.COLOR_BGR2GRAY)
+    stereo = cv2.StereoBM_create(numDisparities = 16, blockSize = 11)
+    disp = stereo.compute(gray_1, gray_2)
+    plt.imshow(disp,'gray')
+    plt.show()
+
 if __name__ == "__main__":
 
-    im0, im1, cam0, cam1 = data3() # Choose which data set to apply stereo vision to (Each data set consists of two images)
+    im0, im1, cam0, cam1 = data2() # Choose which data set to apply stereo vision to (Each data set consists of two images)
 
-    rec1, rec2 = rectify(im0, im1)
+    disparity(im0, im1)
+
+    # rec1, rec2 = rectify(im0, im1)
 
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
