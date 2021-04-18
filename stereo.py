@@ -196,9 +196,16 @@ def draw_epiline(image, lines):
         x2, y2 = map(int, [width, -(i[2] + i[0] * width) / i[1]])
         cv2.line(image, (x1, y1), (x2, y2), (0, 255, 0), 1)
 
-def disparity(image_1, image_2):
+def correspondence(rec1, rec2):
 
-    image_1
+    window = np.ones(5, 5)
+
+    for i in range(len(rec1)):
+        for j in range(len(rec1[i])):
+            
+            a = rec1[j - 5:j + 5]
+            
+
    
 
 def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt functions
@@ -207,16 +214,19 @@ def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt fun
     gray_2 = cv2.cvtColor(image_2, cv2.COLOR_BGR2GRAY)
     stereo = cv2.StereoBM_create(numDisparities = 16, blockSize = 11)
     disp = stereo.compute(gray_1, gray_2)
+    heatmap = cv2.applyColorMap(np.uint8(disp), cv2.COLORMAP_HOT)
     plt.imshow(disp,'gray')
+    cv2.imshow('Heatmap', heatmap)
+    # plt.imshow(heatmap, 'Heatmap')
     plt.show()
 
 if __name__ == "__main__":
 
-    im0, im1, cam0, cam1 = data2() # Choose which data set to apply stereo vision to (Each data set consists of two images)
+    im0, im1, cam0, cam1 = data3() # Choose which data set to apply stereo vision to (Each data set consists of two images)
 
-    disparity(im0, im1)
+    # stereo_depth(im0, im1)
 
-    # rec1, rec2 = rectify(im0, im1)
+    rec1, rec2 = rectify(im0, im1)
 
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
