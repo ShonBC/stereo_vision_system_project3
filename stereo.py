@@ -242,13 +242,13 @@ def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt fun
 
 if __name__ == "__main__":
 
-    im0, im1, cam0, cam1 = data3() # Choose which data set to apply stereo vision to (Each data set consists of two images)
+    im0, im1, cam0, cam1 = data1() # Choose which data set to apply stereo vision to (Each data set consists of two images)
 
     # stereo_depth(im0, im1)
 
     rec1, rec2 = rectify(im0, im1)
 
-    disp = correspondence(rec1, rec2)
+    # disp = correspondence(rec1, rec2)
 
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
