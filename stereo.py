@@ -14,6 +14,10 @@ def data1(): # Initializes images from data set 1
     im1 = cv2.imread('data_1/im1.png')
     im1 = cv2.resize(im1, (720,480))
 
+    
+    baseline = 177.288
+    focal_length = 5299.313
+
     cam0 = np.array([[5299.313, 0, 1263.818],
     [0, 5299.313, 977.763],
     [0, 0, 1]])
@@ -21,7 +25,7 @@ def data1(): # Initializes images from data set 1
     [0, 5299.313, 977.763],
     [0, 0, 1]])
 
-    return im0, im1, cam0, cam1
+    return im0, im1, cam0, cam1, baseline, focal_length
 
 def data2(): # Initializes images from data set 2
 
@@ -30,6 +34,9 @@ def data2(): # Initializes images from data set 2
     im1 = cv2.imread('data_2/im1.png')
     im1 = cv2.resize(im1, (720,480))
 
+    baseline = 144.049
+    focal_length = 4396.869
+
     cam0 = np.array([[4396.869, 0, 1353.072],
     [0, 4396.869, 989.702],
     [0, 0, 1]])
@@ -37,7 +44,7 @@ def data2(): # Initializes images from data set 2
     [0, 4396.869, 989.702],
     [0, 0, 1]])
 
-    return im0, im1, cam0, cam1
+    return im0, im1, cam0, cam1, baseline, focal_length
 
 def data3(): # Initializes images from data set 3
 
@@ -46,6 +53,9 @@ def data3(): # Initializes images from data set 3
     im1 = cv2.imread('data_3/im1.png')
     im1 = cv2.resize(im1, (720,480))
 
+    baseline = 174.019
+    focal_length = 5806.559
+
     cam0 = np.array([[5806.559, 0, 1429.219],
     [0, 5806.559, 993.403],
     [0, 0, 1]])
@@ -53,7 +63,7 @@ def data3(): # Initializes images from data set 3
     [0, 5806.559, 993.403],
     [0, 0, 1]])
 
-    return im0, im1, cam0, cam1
+    return im0, im1, cam0, cam1, baseline, focal_length
 
 def sift(image): # Use SIFT to find keypoints and descriptors for image and draw key points
 
@@ -204,11 +214,12 @@ def draw_epiline(image, lines):
         x2, y2 = map(int, [width, -(i[2] + i[0] * width) / i[1]])
         cv2.line(image, (x1, y1), (x2, y2), (0, 255, 0), 1)
 
-def correspondence(rec1, rec2): # Compute the disparity using matching window concept
+def correspondence(rec1, rec2, baseline, focal_length): # Compute the disparity using matching window concept
 
     k = 5
 
     disp = np.ones_like(rec1)
+    depth_map = np.ones_like(rec1)
 
     for i in range(len(rec1)):
         for j in range(len(rec1[i])):
@@ -221,20 +232,15 @@ def correspondence(rec1, rec2): # Compute the disparity using matching window co
 
                 if a.all() == b.all(): # If pixels in window all match, calc disparity and move to next x pixel to compare
                     
-                    disp[i][j] = disparity(c, j) # Calculate disparity
+                    disp[i][j] = j - c # Calculate disparity
+                    depth_map[i][j] = (baseline * focal_length) / disp[i][j] # Calculate the depth
                     break
                 
                 else:
 
                     pass
 
-    return disp
-
-def disparity(x1, x2):
-
-    disp = x1 - x2
-
-    return disp
+    return disp, depth_map
    
 
 def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt functions
@@ -243,6 +249,7 @@ def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt fun
     gray_2 = cv2.cvtColor(image_2, cv2.COLOR_BGR2GRAY)
     stereo = cv2.StereoBM_create(numDisparities = 16, blockSize = 11)
     disp = stereo.compute(gray_1, gray_2)
+    # cv2.normalize(disp, )
     heatmap = cv2.applyColorMap(np.uint8(disp), cv2.COLORMAP_HOT)
     plt.imshow(disp,'gray')
     cv2.imshow('Heatmap', heatmap)
@@ -251,15 +258,17 @@ def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt fun
 
 if __name__ == "__main__":
 
-    im0, im1, cam0, cam1 = data1() # Choose which data set to apply stereo vision to (Each data set consists of two images)
+    im0, im1, cam0, cam1, baseline, focal_length = data2() # Choose which data set to apply stereo vision to (Each data set consists of two images)
 
     rec1, rec2 = rectify(im0, im1)
 
     stereo_depth(im0, im1)
 
-    disp = correspondence(rec1, rec2)
+    disp, depth_map = correspondence(rec1, rec2, baseline, focal_length)
 
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
     cv2.imshow('disp', disp)
+    cv2.imshow('depth map', depth_map)
+
     cv2.waitKey(0)
