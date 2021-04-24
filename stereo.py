@@ -103,12 +103,12 @@ def features(image_1, image_2): # Use keypoints and descriptors form SIFT to mat
         pts_2.append(key_points_2[good_match[i][0].trainIdx].pt)
 
     f = fun_mtx(x1, y1, x2, y2) # Fundamental Matrix
-    print("Fundamental Matrix: ", '\n', f)
     
     pts_1 = np.int32(pts_1)
     pts_2 = np.int32(pts_2)
 
     F, mask = cv2.findFundamentalMat(pts_1, pts_2, cv2.FM_RANSAC)
+    print("Fundamental Matrix: ", '\n', F)
 
     # Filter for inlier points
     pts_1 = pts_1[mask.ravel() == 1]
@@ -175,11 +175,13 @@ def rectify(image_1, image_2):
     rec1 = cv2.warpPerspective(image_1, H1, (720, 480))
     rec2 = cv2.warpPerspective(image_2, H2, (720, 480))
 
-    lines_1 = cv2.computeCorrespondEpilines(pts_1.reshape(-1, 1, 2), 1, F).reshape(-1, 3)
-    lines_2 = cv2.computeCorrespondEpilines(pts_2.reshape(-1, 1, 2), 2, F).reshape(-1, 3)
+    F_rec = np.dot(np.dot(np.linalg.inv(H2).T, F), np.linalg.inv(H1))
 
-    draw_epiline(image_1, lines_2)
-    draw_epiline(image_2, lines_1)
+    lines_1 = cv2.computeCorrespondEpilines(pts_1.reshape(-1, 1, 2), 1, F_rec).reshape(-1, 3)
+    lines_2 = cv2.computeCorrespondEpilines(pts_2.reshape(-1, 1, 2), 2, F_rec).reshape(-1, 3)
+
+    draw_epiline(rec1, lines_2)
+    draw_epiline(rec2, lines_1)
 
     h_stack = np.hstack((rec1, rec2))
     cv2.imshow('rectify', h_stack)
@@ -242,15 +244,15 @@ def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt fun
 
 if __name__ == "__main__":
 
-    im0, im1, cam0, cam1 = data1() # Choose which data set to apply stereo vision to (Each data set consists of two images)
-
-    # stereo_depth(im0, im1)
+    im0, im1, cam0, cam1 = data3() # Choose which data set to apply stereo vision to (Each data set consists of two images)
 
     rec1, rec2 = rectify(im0, im1)
+
+    stereo_depth(im0, im1)
 
     # disp = correspondence(rec1, rec2)
 
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
-    # cv2.imshow('img3', img3)
+    # cv2.imshow('disp', disp)
     cv2.waitKey(0)
