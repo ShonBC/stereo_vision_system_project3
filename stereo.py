@@ -165,7 +165,7 @@ def ess_mtx(fundamental_matrix): # Compute the Essential Matrix from the Fundame
 
     return E
 
-def rectify(image_1, image_2):
+def rectify(image_1, image_2): # Rectify the images to make epipolar lines parallel
 
     pts_1, pts_2, H1, H2, F = features(image_1, image_2)
     
@@ -198,7 +198,7 @@ def draw_epiline(image, lines):
         x2, y2 = map(int, [width, -(i[2] + i[0] * width) / i[1]])
         cv2.line(image, (x1, y1), (x2, y2), (0, 255, 0), 1)
 
-def correspondence(rec1, rec2):
+def correspondence(rec1, rec2): # Compute the disparity using matching window concept
 
     k = 5
 
@@ -207,15 +207,16 @@ def correspondence(rec1, rec2):
     for i in range(len(rec1)):
         for j in range(len(rec1[i])):
             
-            a = rec1[i - k: i + k, j - k: j + k]
+            a = rec1[i - k: i + k, j - k: j + k] # Image 1 search window
 
             for c in range(len(rec2[i])):
                 
-                b = rec2[i - k: i + k, c - k: c + k]
+                b = rec2[i - k: i + k, c - k: c + k] # Image 2 search window
 
-                if a.all() == b.all():
+                if a.all() == b.all(): # If pixels in window all match, calc disparity and move to next x pixel to compare
                     
-                    disp[i][j] = disparity(c, j)
+                    disp[i][j] = disparity(c, j) # Calculate disparity
+                    break
                 
                 else:
 
@@ -250,9 +251,9 @@ if __name__ == "__main__":
 
     stereo_depth(im0, im1)
 
-    # disp = correspondence(rec1, rec2)
+    disp = correspondence(rec1, rec2)
 
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
-    # cv2.imshow('disp', disp)
+    cv2.imshow('disp', disp)
     cv2.waitKey(0)
