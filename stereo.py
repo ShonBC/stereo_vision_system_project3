@@ -159,8 +159,14 @@ def ess_mtx(fundamental_matrix): # Compute the Essential Matrix from the Fundame
     r1 = u * w * v.T
     r2 = u * w.T * v.T
 
+    R = []
+
+    if np.linalg.det(r1) == 1:
+        R = r1
+    elif np.linalg.det(r2) == 1:
+        R = r2
     print("Essential Matrix: ", '\n', E)
-    print("Rotation: ", '\n',  r1, '\n', '\n', r2)
+    print("Rotation: ", '\n',  r1, '\n', '\n', r2, '\n', R)
     print("Translation: ", '\n', t1, '\n', '\n', t2)
 
     return E
@@ -245,7 +251,7 @@ def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt fun
 
 if __name__ == "__main__":
 
-    im0, im1, cam0, cam1 = data3() # Choose which data set to apply stereo vision to (Each data set consists of two images)
+    im0, im1, cam0, cam1 = data1() # Choose which data set to apply stereo vision to (Each data set consists of two images)
 
     rec1, rec2 = rectify(im0, im1)
 
