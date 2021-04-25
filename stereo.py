@@ -220,17 +220,23 @@ def correspondence(rec1, rec2, baseline, focal_length): # Compute the disparity 
 
     disp = np.ones_like(rec1)
     depth_map = np.ones_like(rec1)
+    s = []
 
     for i in range(len(rec1)):
         for j in range(len(rec1[i])):
             
-            a = rec1[i - k: i + k, j - k: j + k] # Image 1 search window
+            # a = rec1[i - k: i + k, j - k: j + k] # Image 1 search window
+            a = rec1[i][j]
 
             for c in range(len(rec2[i])):
                 
-                b = rec2[i - k: i + k, c - k: c + k] # Image 2 search window
+                # b = rec2[i - k: i + k, c - k: c + k] # Image 2 search window
+                b = rec2[i][j]
 
-                if a.all() == b.all(): # If pixels in window all match, calc disparity and move to next x pixel to compare
+                # SSD
+                s.append(SSD(a, b))
+
+                if np.array_equiv(a, b): # If pixels in window all match, calc disparity and move to next x pixel to compare
                     
                     disp[i][j] = j - c # Calculate disparity
                     depth_map[i][j] = (baseline * focal_length) / disp[i][j] # Calculate the depth
@@ -242,6 +248,18 @@ def correspondence(rec1, rec2, baseline, focal_length): # Compute the disparity 
 
     return disp, depth_map
    
+def SSD(a, b):
+
+    s = (a - b)**2
+
+    # s = np.ones_like(rec1)
+
+    # for i in range(len(a)):
+    #     for j in range(len(a[i])):
+            
+    #         s[i][j] = (a[i][j] - b[i][j])**2
+
+    return s
 
 def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt functions
     
