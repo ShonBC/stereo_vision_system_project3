@@ -3,7 +3,8 @@ ENPM 673 - Perception For Autonomous Robots: In this project, we are going to im
 
 
 The program has the data sets imported in functions at the top of the program. 
-In the main:
+To run the program, in the if __name__ == "__main__":
+
     
     Choose which data set to run by changing the line:
 
@@ -13,3 +14,5 @@ In the main:
 
     The output will print all the required matrices to the consol and show the Matched points, Rectified images with parallel epipolar lines, 
     Disparity and Depth Maps with their corresponding Heat Maps, and the Disparity heat map found using the inbuilt methods for comparison.  
+
+
