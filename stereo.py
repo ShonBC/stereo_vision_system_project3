@@ -216,7 +216,7 @@ def draw_epiline(image, lines):
 
 def correspondence(rec1, rec2, baseline, focal_length): # Compute the disparity using matching window concept
 
-    width, height, _ = rec1.shape
+    height, width, _ = rec1.shape
 
     rec1_pad = cv2.copyMakeBorder(rec1, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=[0 , 0, 0])
     rec2_pad = cv2.copyMakeBorder(rec2, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=[0 , 0, 0])
@@ -226,61 +226,35 @@ def correspondence(rec1, rec2, baseline, focal_length): # Compute the disparity 
     disp = np.ones_like(rec1)
     depth_map = np.ones_like(rec1)
 
-    for i in range(5, height):
-        for j in range(5, width):
+    for i in range(5, height + 5):
+        for j in range(5, width + 5):
             
             ymin = i - k
             ymax = i + k
             xmin = j - k
             xmax = j + k
 
-            # if ymin < 0 or ymin > height:
-            #     ymin = i
-            # if ymax < 0 or ymax > height:
-            #     ymax = i
-            # if xmin < 0 or xmin > width:
-            #     xmin = i
-            # if xmax < 0 or xmax > width:
-            #     xmax = i
             
             a = rec1_pad[ymin: ymax, xmin: xmax] # Image 1 search window
-            # a = rec1[i][j]
+           
             s = [] # Reset SSD list for each pixel in the first image
 
-            for c in range(5, width):
+            for c in range(5, width + 5):
                 
                 b = rec2_pad[ymin: ymax, c - k: c + k] # Image 2 search window
-                # b = rec2[i][j]
 
                 # SSD
                 s.append(np.sum(SSD(a, b)))
-
-                # if np.array_equiv(a, b): # If pixels in window all match, calc disparity and move to next x pixel to compare
-                    
-                #     disp[i][j] = j - c # Calculate disparity
-                #     depth_map[i][j] = (baseline * focal_length) / disp[i][j] # Calculate the depth
-                #     break
-                
-                # else:
-
-                #     pass
             
             index = s.index(min(s)) # Index of min SSD values is match for pixel 
-            disp[j - 1][i] = j - index # Calculate disparity
-            depth_map[j - 1][i] = (baseline * focal_length) / disp[i][j]
+            disp[i - 6][j - 6] = j - index # Calculate disparity
+            depth_map[i - 6][j - 6] = (baseline * focal_length) / disp[i - 6][j - 6]
 
     return disp, depth_map
    
 def SSD(a, b):
 
     s = (a - b)**2
-
-    # s = np.ones_like(rec1)
-
-    # for i in range(len(a)):
-    #     for j in range(len(a[i])):
-            
-    #         s[i][j] = (a[i][j] - b[i][j])**2
 
     return s
 
@@ -299,7 +273,7 @@ def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt fun
 
 if __name__ == "__main__":
 
-    im0, im1, cam0, cam1, baseline, focal_length = data2() # Choose which data set to apply stereo vision to (Each data set consists of two images)
+    im0, im1, cam0, cam1, baseline, focal_length = data1() # Choose which data set to apply stereo vision to (Each data set consists of two images)
 
     rec1, rec2 = rectify(im0, im1)
 
@@ -307,9 +281,13 @@ if __name__ == "__main__":
 
     disp, depth_map = correspondence(rec1, rec2, baseline, focal_length)
 
+    disp_heat = cv2.applyColorMap(np.uint8(disp), cv2.COLORMAP_HOT)
+    depth_heat = cv2.applyColorMap(np.uint8(depth_map), cv2.COLORMAP_HOT)
+
     cv2.imshow('img0', im0)
     cv2.imshow('img1', im1)
     cv2.imshow('disp', disp)
     cv2.imshow('depth map', depth_map)
-
+    cv2.imshow('disp_heat', disp_heat)
+    cv2.imshow('depth_heat', depth_heat)
     cv2.waitKey(0)
