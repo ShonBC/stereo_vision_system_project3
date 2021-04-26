@@ -266,7 +266,7 @@ def stereo_depth(image_1, image_2): # Compute depth map using OpenCv inbuilt fun
     disp = stereo.compute(gray_1, gray_2)
     # cv2.normalize(disp, )
     heatmap = cv2.applyColorMap(np.uint8(disp), cv2.COLORMAP_HOT)
-    plt.imshow(disp,'gray')
+    # plt.imshow(disp,'gray')
     cv2.imshow('Heatmap', heatmap)
     # plt.imshow(heatmap, 'Heatmap')
     plt.show()
