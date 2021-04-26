@@ -216,35 +216,58 @@ def draw_epiline(image, lines):
 
 def correspondence(rec1, rec2, baseline, focal_length): # Compute the disparity using matching window concept
 
+    width, height, _ = rec1.shape
+
+    rec1_pad = cv2.copyMakeBorder(rec1, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=[0 , 0, 0])
+    rec2_pad = cv2.copyMakeBorder(rec2, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=[0 , 0, 0])
+
     k = 5
 
     disp = np.ones_like(rec1)
     depth_map = np.ones_like(rec1)
-    s = []
 
-    for i in range(len(rec1)):
-        for j in range(len(rec1[i])):
+    for i in range(5, height):
+        for j in range(5, width):
             
-            # a = rec1[i - k: i + k, j - k: j + k] # Image 1 search window
-            a = rec1[i][j]
+            ymin = i - k
+            ymax = i + k
+            xmin = j - k
+            xmax = j + k
 
-            for c in range(len(rec2[i])):
+            # if ymin < 0 or ymin > height:
+            #     ymin = i
+            # if ymax < 0 or ymax > height:
+            #     ymax = i
+            # if xmin < 0 or xmin > width:
+            #     xmin = i
+            # if xmax < 0 or xmax > width:
+            #     xmax = i
+            
+            a = rec1_pad[ymin: ymax, xmin: xmax] # Image 1 search window
+            # a = rec1[i][j]
+            s = [] # Reset SSD list for each pixel in the first image
+
+            for c in range(5, width):
                 
-                # b = rec2[i - k: i + k, c - k: c + k] # Image 2 search window
-                b = rec2[i][j]
+                b = rec2_pad[ymin: ymax, c - k: c + k] # Image 2 search window
+                # b = rec2[i][j]
 
                 # SSD
-                s.append(SSD(a, b))
+                s.append(np.sum(SSD(a, b)))
 
-                if np.array_equiv(a, b): # If pixels in window all match, calc disparity and move to next x pixel to compare
+                # if np.array_equiv(a, b): # If pixels in window all match, calc disparity and move to next x pixel to compare
                     
-                    disp[i][j] = j - c # Calculate disparity
-                    depth_map[i][j] = (baseline * focal_length) / disp[i][j] # Calculate the depth
-                    break
+                #     disp[i][j] = j - c # Calculate disparity
+                #     depth_map[i][j] = (baseline * focal_length) / disp[i][j] # Calculate the depth
+                #     break
                 
-                else:
+                # else:
 
-                    pass
+                #     pass
+            
+            index = s.index(min(s)) # Index of min SSD values is match for pixel 
+            disp[j - 1][i] = j - index # Calculate disparity
+            depth_map[j - 1][i] = (baseline * focal_length) / disp[i][j]
 
     return disp, depth_map
    
